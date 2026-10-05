@@ -1,0 +1,40 @@
+# Dev environment: workspace container + the same Postgres version used by the root docker-compose.yml.
+services:
+  workspace:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sleep infinity
+    volumes:
+      - ..:/workspaces/recycling-logistics:cached
+      # Keep Linux-built deps out of the host checkout (native binaries differ from macOS).
+      - web-node-modules:/workspaces/recycling-logistics/web/node_modules
+      - mobile-node-modules:/workspaces/recycling-logistics/mobile/node_modules
+      - backend-venv:/workspaces/recycling-logistics/backend/.venv
+    environment:
+      DATABASE_URL: postgresql+psycopg://recycling:recycling@db:5432/recycling
+      TZ: America/Santiago
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: recycling
+      POSTGRES_PASSWORD: recycling
+      POSTGRES_DB: recycling
+    volumes:
+      - devcontainer-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recycling"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  devcontainer-pgdata:
+  web-node-modules:
+  mobile-node-modules:
+  backend-venv:

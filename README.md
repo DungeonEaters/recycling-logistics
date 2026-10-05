@@ -21,6 +21,20 @@ make test        # tests del backend
 
 Docs interactivas de la API: http://localhost:8000/docs
 
+## Dev Container (entorno replicable)
+
+Alternativa a instalar Python/Node en tu máquina: `.devcontainer/` levanta un contenedor de trabajo (Python 3.12 + Node 22) junto a Postgres 16, como el `docker-compose.yml` raíz.
+
+1. VS Code → *Dev Containers: Reopen in Container* (o `npx @devcontainers/cli up --workspace-folder .`).
+2. `post-create.sh` crea el venv e instala dependencias de `web/` y `mobile/` (en volúmenes, sin tocar tu `node_modules` del host).
+3. Dentro del contenedor: `make dev-api`, `make dev-web`, `make dev-mobile` (puertos 8000/5173/5174 reenviados) y `make test-local` para correr tests y builds.
+
+`DATABASE_URL` ya apunta al servicio `db` del contenedor.
+
+## CI
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada PR y push a `main`: pytest del backend, build del panel web, tests + build de la app móvil y un smoke test de `docker compose` (API + Postgres, health y login).
+
 ## Usuarios demo
 
 | Rol | Email | Password |
