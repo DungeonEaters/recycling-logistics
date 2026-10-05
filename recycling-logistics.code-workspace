@@ -1,0 +1,9 @@
+{
+  "folders": [
+    { "name": "recycling-logistics (backend + web + mobile)", "path": "." },
+    { "name": "app-design-definitions (docs)", "path": "../app-design-definitions" }
+  ],
+  "settings": {
+    "files.exclude": { "**/node_modules": true, "**/dist": true, "**/__pycache__": true }
+  }
+}
