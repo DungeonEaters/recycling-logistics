@@ -13,21 +13,31 @@ Monorepo temporal (se puede separar luego):
 ## Levantar en local
 
 ```bash
-make up          # Postgres + API (datos demo se siembran solos)
-make web         # http://localhost:5173
-make mobile      # http://localhost:5174  (usar vista móvil en DevTools)
+make up          # Postgres + API + panel web + app móvil (datos demo se siembran solos)
 make test        # tests del backend
 ```
 
 Docs interactivas de la API: http://localhost:8000/docs
 
+Cada parte es un servicio de Compose separado: `db`, `api`, `web` y `mobile`. Docker Desktop muestra sus consolas y logs individualmente:
+
+```bash
+docker compose logs -f web
+docker compose logs -f mobile
+docker compose exec api bash
+docker compose exec web sh
+docker compose exec mobile sh
+```
+
+Los frontends usan hot reload. Cambios en `web/` o `mobile/` se reflejan dentro de sus contenedores sin reconstruirlos.
+
 ## Dev Container (entorno replicable)
 
-Alternativa a instalar Python/Node en tu máquina: `.devcontainer/` levanta un contenedor de trabajo (Python 3.12 + Node 22) junto a Postgres 16, como el `docker-compose.yml` raíz.
+Alternativa a instalar Python/Node en tu máquina: `.devcontainer/` agrega un contenedor de trabajo (Python 3.12 + Node 22) al stack de Compose.
 
 1. VS Code → *Dev Containers: Reopen in Container* (o `npx @devcontainers/cli up --workspace-folder .`).
-2. `post-create.sh` crea el venv e instala dependencias de `web/` y `mobile/` (en volúmenes, sin tocar tu `node_modules` del host).
-3. Dentro del contenedor: `make dev-api`, `make dev-web`, `make dev-mobile` (puertos 8000/5173/5174 reenviados) y `make test-local` para correr tests y builds.
+2. `post-create.sh` crea el venv del backend. Los servicios de aplicación siguen siendo `db`, `api`, `web` y `mobile`, administrados por Compose.
+3. Dentro del contenedor: `make test-local` para correr tests y builds. Para levantar toda la aplicación usa `make up`; no inicies procesos duplicados con `make dev-*`.
 
 `DATABASE_URL` ya apunta al servicio `db` del contenedor.
 

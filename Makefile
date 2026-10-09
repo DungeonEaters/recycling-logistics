@@ -7,7 +7,7 @@ down:
 	docker compose down
 
 logs:
-	docker compose logs -f api
+	docker compose logs -f
 
 test:
 	docker compose run --rm --no-deps -e DATABASE_URL=sqlite+pysqlite:///:memory: api pytest -q
@@ -16,10 +16,10 @@ reset:
 	docker compose down -v && docker compose up -d --build
 
 web:
-	cd web && npm install && npm run dev
+	docker compose up -d --build web
 
 mobile:
-	cd mobile && npm install && npm run dev
+	docker compose up -d --build mobile
 
 # Targets used inside the dev container (DATABASE_URL points to the `db` service).
 dev-api:

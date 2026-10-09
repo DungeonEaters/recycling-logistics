@@ -1,6 +1,6 @@
 {
   "name": "recycling-logistics",
-  "dockerComposeFile": "docker-compose.yml",
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
   "service": "workspace",
   "workspaceFolder": "/workspaces/recycling-logistics",
   // Node 22 matches CI (Vite 8 needs >= 20.19 / 22.12).
