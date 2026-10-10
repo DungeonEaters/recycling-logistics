@@ -26,6 +26,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/srv
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 3s
@@ -36,7 +37,9 @@ services:
         condition: service_healthy
 
   web:
-    build: ./web
+    build:
+      context: ./web
+      target: development
     environment:
       VITE_API_URL: http://localhost:8000
       CHOKIDAR_USEPOLLING: "true"
@@ -55,7 +58,9 @@ services:
         condition: service_healthy
 
   mobile:
-    build: ./mobile
+    build:
+      context: ./mobile
+      target: development
     environment:
       VITE_API_URL: http://localhost:8000
       CHOKIDAR_USEPOLLING: "true"

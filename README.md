@@ -45,6 +45,41 @@ Alternativa a instalar Python/Node en tu máquina: `.devcontainer/` agrega un co
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada PR y push a `main`: pytest del backend, build del panel web, tests + build de la app móvil y un smoke test de `docker compose` (API + Postgres, health y login).
 
+## Producción (Oracle Cloud ARM64)
+
+[`docker-compose.prod.yml`](docker-compose.prod.yml) ejecuta imágenes inmutables de GHCR: API, panel web y app de choferes. No monta código local, no expone la base de datos y solo [Caddy](Caddyfile) abre los puertos 80/443.
+
+Los nombres DNS deben apuntar a la IP pública de la VM antes del primer deploy:
+
+- `APP_DOMAIN` — panel admin: `https://<dominio>`.
+- `driver.APP_DOMAIN` — app de choferes.
+- `api.APP_DOMAIN` — API y OpenAPI.
+
+En la VM, copia `.env.production.example` a `.env`, completa sus valores con secretos aleatorios y protégelo:
+
+```bash
+install -d -m 700 /opt/recycling-logistics
+cp .env.production.example /opt/recycling-logistics/.env
+chmod 600 /opt/recycling-logistics/.env
+```
+
+No subas `.env` al repositorio. Caddy obtiene y renueva certificados Let's Encrypt automáticamente cuando DNS, puertos 80/443 y firewall de Oracle Cloud están configurados.
+
+El workflow [`deploy.yml`](.github/workflows/deploy.yml) construye imágenes ARM64, las publica en GHCR y despliega el commit de `main`. Configura estos **GitHub Secrets**:
+
+| Secret | Uso |
+|---|---|
+| `PROD_HOST` | IP o host DNS de la VM |
+| `PROD_USER` | Usuario SSH de la VM |
+| `PROD_SSH_PRIVATE_KEY` | Clave privada SSH de despliegue |
+| `PROD_SSH_KNOWN_HOSTS` | Salida de `ssh-keyscan -H <host>` verificada fuera del pipeline |
+| `GHCR_USERNAME` | Usuario u organización con acceso de lectura al paquete GHCR |
+| `GHCR_PULL_TOKEN` | PAT de mínimo alcance `read:packages` para que la VM descargue imágenes privadas |
+
+También configura las **GitHub Actions Variables** `PROD_APP_DOMAIN` y `PROD_DEPLOY_PATH` (por ejemplo `/opt/recycling-logistics`). El dominio es público, por eso es variable y no secreto.
+
+Docker Compose con una réplica por servicio reinicia el contenedor al desplegarlo; Caddy mantiene TLS, pero no garantiza cero downtime para solicitudes que lleguen durante ese reinicio. Cero downtime requiere dos réplicas de API/frontend y un orquestador o balanceador externo.
+
 ## Usuarios demo
 
 | Rol | Email | Password |
